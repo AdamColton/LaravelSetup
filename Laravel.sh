@@ -1,14 +1,10 @@
 #!/bin/bash
 
-# Refs:
-#  http://www.unixmen.com/install-lemp-server-nginx-mysql-mariadb-php-ubuntu-13-10-server/
-# Todo:
-#  pull password from args, or settings,
-
 apt-get update -y
 apt-get upgrade -y
 
 dbPass=password
+projectName=laravel
 
 debconf-set-selections <<EOF
 mysql-server-5.1 mysql-server/root_password password $dbPass
@@ -26,9 +22,6 @@ apt-get -y install git-core nginx mysql-server mysql-client php5 php5-fpm php5-m
 cp default /etc/nginx/sites-available/default
 cp php.ini /etc/php5/fpm/php.ini
 
-#link phpmyadmin to nginx
-ln -s /usr/share/phpmyadmin/ /var/www/laravel/public/
-
 # fix mcrypt error
 ln -s /etc/php5/conf.d/mcrypt.ini /etc/php5/mods-available/mcrypt.ini
 php5enmod mcrypt
@@ -37,10 +30,12 @@ service php5-fpm restart
 # setting up laravel
 curl -sS https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
-composer create-project laravel/laravel /var/www/laravel/
-chgrp -R www-data /var/www/laravel
-chmod -R 775 /var/www/laravel/app/storage
+composer create-project laravel/$projectName /var/www/$projectName/
+chgrp -R www-data /var/www/$projectName
+chmod -R 775 /var/www/$projectName/app/storage
 
+#link phpmyadmin to nginx
+ln -s /usr/share/phpmyadmin/ /var/www/projectName/public/
 
 service nginx start
 service php5-fpm restart
